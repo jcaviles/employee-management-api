@@ -1,14 +1,9 @@
 package com.demo.controller;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-
-import javax.validation.Valid;
-
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,72 +12,46 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.demo.exception.ResourceNotFoundException;
 import com.demo.model.Employee;
-import com.demo.repository.EmployeeRepository;
+import com.demo.service.EmployeeService;
+
 
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/api/v1")
 public class EmployeeController {
 
 	@Autowired
-	private EmployeeRepository employeeRepository;
+	EmployeeService employeeService;
 
-	@GetMapping("/employees")
-	public List<Employee> getAllEmployees() {
-		return employeeRepository.findAll();
+
+	@PostMapping(value= "/create")
+	public String create(@RequestBody List<Employee> employee) {
+		employeeService.createEmployee(employee);
+		return "Employee records created.";
 	}
 
-	@GetMapping("/employees/{id}")
-	public ResponseEntity<Employee> getEmployeeById(
-			@PathVariable(value = "id") Long employeeId)
-			throws ResourceNotFoundException {
-		Employee employee = employeeRepository.findById(employeeId)
-				.orElseThrow(
-						() -> new ResourceNotFoundException(
-								"Employee not found for this id :: "
-										+ employeeId));
-		return ResponseEntity.ok().body(employee);
+	@GetMapping(value= "/getall")
+	public Collection<Employee> getAll() {
+		return employeeService.getAllEmployees();
 	}
 
-	@PostMapping("/employees")
-	public Employee createEmployee(@Valid @RequestBody Employee employee) {
-		return employeeRepository.save(employee);
+	@GetMapping(value= "/getbyid/{employee-id}")
+	public Optional<Employee> getById(@PathVariable(value= "employee-id") int id) {
+		return employeeService.findEmployeeById(id);
 	}
 
-	@PutMapping("/employees/{id}")
-	public ResponseEntity<Employee> updateEmployee(
-			@PathVariable(value = "id") Long employeeId,
-			@Valid @RequestBody Employee employeeDetails)
-			throws ResourceNotFoundException {
-		Employee employee = employeeRepository.findById(employeeId)
-				.orElseThrow(
-						() -> new ResourceNotFoundException(
-								"Employee not found for this id :: "
-										+ employeeId));
-
-		employee.setEmailId(employeeDetails.getEmailId());
-		employee.setLastName(employeeDetails.getLastName());
-		employee.setFirstName(employeeDetails.getFirstName());
-		final Employee updatedEmployee = employeeRepository.save(employee);
-		return ResponseEntity.ok(updatedEmployee);
+	@PutMapping(value= "/update/{employee-id}")
+	public String update(@PathVariable(value= "employee-id") int id, @RequestBody Employee employee) {
+		employee.setId(id);
+		employeeService.updateEmployee(employee);
+		return "Employee record for employee-id= " + id + " updated.";
 	}
 
-	@DeleteMapping("/employees/{id}")
-	public Map<String, Boolean> deleteEmployee(
-			@PathVariable(value = "id") Long employeeId)
-			throws ResourceNotFoundException {
-		Employee employee = employeeRepository.findById(employeeId)
-				.orElseThrow(
-						() -> new ResourceNotFoundException(
-								"Employee not found for this id :: "
-										+ employeeId));
 
-		employeeRepository.delete(employee);
-		Map<String, Boolean> response = new HashMap<>();
-		response.put("deleted", Boolean.TRUE);
-		return response;
+	@DeleteMapping(value= "/delete/{employee-id}")
+	public String delete(@PathVariable(value= "employee-id") int id) {
+		employeeService.deleteEmployeeById(id);
+		return "Employee record for employee-id= " + id + " deleted.";
 	}
+
 }
