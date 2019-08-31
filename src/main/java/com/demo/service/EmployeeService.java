@@ -1,13 +1,12 @@
 package com.demo.service;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import com.demo.model.Employee;
 
 public interface EmployeeService {
 	
-	public void createEmployee(List<Employee> employee);
+	public void createEmployee(Employee employee);
 
 	public Collection<Employee> getAllEmployees();
 
